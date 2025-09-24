@@ -1,24 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mobile-First Chat Application Challenge
+
+A Next.js full-stack application setup for building a mobile-first chat interface with AI bot integration.
+
+## Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org) with App Router
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Runtime**: [Bun](https://bun.sh/) for fast package management and development
+- **AI**: [Vercel AI SDK v5](https://sdk.vercel.ai/) with OpenRouter integration
+- **Validation**: [Zod v4](https://zod.dev/) for runtime type checking
+- **Styling**: [TailwindCSS](https://tailwindcss.com/) for utility-first CSS
+- **Components**: [shadcn/ui](https://ui.shadcn.com/) for beautiful, accessible components
+
+## Challenge Overview
+
+Build a scalable, mobile-first chat application that connects users with both support agents and AI bots, featuring:
+
+- 📱 Mobile-first responsive design
+- 💬 Reusable chat components (message bubbles, avatars, menus)
+- ⚡ Real-time updates with smooth scrolling
+- 🤖 AI bot integration with streaming responses
+- 🔄 Loading states and error handling
+- 📊 Clean state management architecture
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repository and install dependencies:**
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
+```
+
+2. **Set up environment variables:**
+
+Create a `.env.local` file in the root directory:
+
+```env
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+```
+
+Get your OpenRouter API key from [https://openrouter.ai/settings/keys](https://openrouter.ai/settings/keys)
+
+3. **Run the development server:**
+
+```bash
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. **Open your browser:**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
 
 ## Learn More
 
