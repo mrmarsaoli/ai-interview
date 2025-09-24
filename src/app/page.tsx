@@ -101,13 +101,58 @@ export default function Home() {
                 <li>• Conversation context management</li>
                 <li>• Integration with AI/backend services</li>
               </ul>
-              <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
-                <p className="text-sm font-medium text-orange-800 dark:text-orange-200 mb-1">
-                  🎯 Bonus Points Available
-                </p>
-                <p className="text-xs text-orange-700 dark:text-orange-300">
-                  Implement tool calling for Indonesian holiday information with comprehensive knowledge base
-                </p>
+              <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">🎯</span>
+                  <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                    Bonus Points: Indonesian Holiday Tool Calling
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <p className="text-xs text-orange-700 dark:text-orange-300">
+                    Implement tool calling with special cards for Indonesian holiday information. Knowledge base includes 20+ holidays with rich data.
+                  </p>
+                  
+                  {/* Preview of what tool calling cards would look like */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-orange-800 dark:text-orange-200">Tool Calling Card Examples:</p>
+                    
+                    {/* Mini preview cards */}
+                    <div className="grid gap-2">
+                      <div className="bg-white dark:bg-gray-900 p-2 rounded border-l-2 border-l-blue-500">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-medium">Independence Day</p>
+                          <Badge className="h-4 text-xs bg-blue-100 text-blue-800">national</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Hari Kemerdekaan • August 17th</p>
+                        <p className="text-xs text-muted-foreground mt-1">Celebrates Indonesia's declaration of independence...</p>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-gray-900 p-2 rounded border-l-2 border-l-green-500">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-medium">Religious Holidays (5)</p>
+                          <Badge className="h-4 text-xs bg-green-100 text-green-800">religious</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Eid al-Fitr, Eid al-Adha, Christmas Day...</p>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-gray-900 p-2 rounded border-l-2 border-l-purple-500">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-medium">Holiday Statistics</p>
+                          <Badge className="h-4 text-xs bg-purple-100 text-purple-800">stats</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Total: 20+ holidays • Public: 15 • Types: 4</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-2 border-t border-orange-200 dark:border-orange-800">
+                    <p className="text-xs text-orange-700 dark:text-orange-300">
+                      <span className="font-medium">Available tools:</span> getHolidayInfo, searchHolidays, getHolidaysByType, getHolidayStats, and more
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
