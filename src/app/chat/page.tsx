@@ -20,6 +20,7 @@ import {
 	ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 
 export default function ChatPage() {
 	const [input, setInput] = useState("");
@@ -500,11 +501,17 @@ export default function ChatPage() {
 										{message.parts.map((part, partIndex) => {
 											if (part.type === "text") {
 												return (
-													<div
-														key={partIndex}
-														className="whitespace-pre-wrap text-sm"
-													>
-														{part.text}
+													<div key={partIndex}>
+														{message.role === "user" ? (
+															<div className="whitespace-pre-wrap text-sm">
+																{part.text}
+															</div>
+														) : (
+															<MarkdownRenderer 
+																content={part.text} 
+																className="text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0" 
+															/>
+														)}
 													</div>
 												);
 											}

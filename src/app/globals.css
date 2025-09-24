@@ -120,3 +120,171 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Highlight.js theme for code blocks */
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  color: #333;
+  background: #f8f8f8;
+}
+
+.dark .hljs {
+  color: #f8f8f2;
+  background: #2b2b2b;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #998;
+  font-style: italic;
+}
+
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: #75715e;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #333;
+  font-weight: bold;
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-subst {
+  color: #f92672;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: #008080;
+}
+
+.dark .hljs-number,
+.dark .hljs-literal,
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-tag .hljs-attr {
+  color: #ae81ff;
+}
+
+.hljs-string,
+.hljs-doctag {
+  color: #d14;
+}
+
+.dark .hljs-string,
+.dark .hljs-doctag {
+  color: #e6db74;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+  color: #900;
+  font-weight: bold;
+}
+
+.dark .hljs-title,
+.dark .hljs-section,
+.dark .hljs-selector-id {
+  color: #a6e22e;
+}
+
+.hljs-subst {
+  font-weight: normal;
+}
+
+.hljs-type,
+.hljs-class .hljs-title {
+  color: #458;
+  font-weight: bold;
+}
+
+.dark .hljs-type,
+.dark .hljs-class .hljs-title {
+  color: #66d9ef;
+}
+
+.hljs-tag,
+.hljs-name,
+.hljs-attribute {
+  color: #000080;
+  font-weight: normal;
+}
+
+.dark .hljs-tag,
+.dark .hljs-name,
+.dark .hljs-attribute {
+  color: #f8f8f2;
+}
+
+.hljs-regexp,
+.hljs-link {
+  color: #009926;
+}
+
+.dark .hljs-regexp,
+.dark .hljs-link {
+  color: #e6db74;
+}
+
+.hljs-symbol,
+.hljs-bullet {
+  color: #990073;
+}
+
+.dark .hljs-symbol,
+.dark .hljs-bullet {
+  color: #f92672;
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #0086b3;
+}
+
+.dark .hljs-built_in,
+.dark .hljs-builtin-name {
+  color: #66d9ef;
+}
+
+.hljs-meta {
+  color: #999;
+  font-weight: bold;
+}
+
+.dark .hljs-meta {
+  color: #75715e;
+}
+
+.hljs-deletion {
+  background: #fdd;
+}
+
+.hljs-addition {
+  background: #dfd;
+}
+
+.dark .hljs-deletion {
+  background: #420e09;
+}
+
+.dark .hljs-addition {
+  background: #253b22;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
