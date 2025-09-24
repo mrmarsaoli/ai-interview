@@ -101,6 +101,14 @@ export default function Home() {
                 <li>• Conversation context management</li>
                 <li>• Integration with AI/backend services</li>
               </ul>
+              <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+                <p className="text-sm font-medium text-orange-800 dark:text-orange-200 mb-1">
+                  🎯 Bonus Points Available
+                </p>
+                <p className="text-xs text-orange-700 dark:text-orange-300">
+                  Implement tool calling for Indonesian holiday information with comprehensive knowledge base
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -123,18 +131,6 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
-
-        <div className="mt-8 text-center">
-          <Link href="/chat">
-            <Button size="lg" className="gap-2">
-              <MessageCircle className="h-5 w-5" />
-              Test AI Chat
-            </Button>
-          </Link>
-          <p className="text-sm text-muted-foreground mt-2">
-            Quick test to verify OpenRouter API integration
-          </p>
-        </div>
       </div>
     </div>
   );
