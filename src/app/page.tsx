@@ -126,7 +126,7 @@ export default function Home() {
                           <Badge className="h-4 text-xs bg-blue-100 text-blue-800">national</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground">Hari Kemerdekaan • August 17th</p>
-                        <p className="text-xs text-muted-foreground mt-1">Celebrates Indonesia's declaration of independence...</p>
+                        <p className="text-xs text-muted-foreground mt-1">Celebrates Indonesia&apos;s declaration of independence...</p>
                       </div>
                       
                       <div className="bg-white dark:bg-gray-900 p-2 rounded border-l-2 border-l-green-500">
