@@ -176,6 +176,18 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
+
+        <div className="mt-8 text-center">
+          <Link href="/chat">
+            <Button size="lg" className="gap-2">
+              <MessageCircle className="w-5 h-5" />
+              Try Indonesian Holiday Assistant
+            </Button>
+          </Link>
+          <p className="text-sm text-muted-foreground mt-2">
+            Experience AI SDK v5 with tool calling and Indonesian holiday knowledge base
+          </p>
+        </div>
       </div>
     </div>
   );
