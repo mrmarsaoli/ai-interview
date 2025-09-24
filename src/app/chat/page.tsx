@@ -62,7 +62,6 @@ export default function ChatPage() {
 	};
 
 	const suggestedQuestions = [
-		"Tell me about Indonesian Independence Day",
 		"What are the main religious holidays in Indonesia?",
 		"Show me statistics about Indonesian holidays",
 		"Search for Islamic holidays in Indonesia",
