@@ -1,5 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { MessageCircle } from "lucide-react";
 
 export default function Home() {
   return (
@@ -116,9 +119,22 @@ export default function Home() {
               <Badge>Zod v4</Badge>
               <Badge>TailwindCSS</Badge>
               <Badge>shadcn/ui</Badge>
+              <Badge>SQLite + Drizzle</Badge>
             </div>
           </CardContent>
         </Card>
+
+        <div className="mt-8 text-center">
+          <Link href="/chat">
+            <Button size="lg" className="gap-2">
+              <MessageCircle className="h-5 w-5" />
+              Test AI Chat
+            </Button>
+          </Link>
+          <p className="text-sm text-muted-foreground mt-2">
+            Quick test to verify OpenRouter API integration
+          </p>
+        </div>
       </div>
     </div>
   );
