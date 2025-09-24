@@ -8,6 +8,7 @@ A Next.js full-stack application setup for building a mobile-first chat interfac
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Runtime**: [Bun](https://bun.sh/) for fast package management and development
 - **AI**: [Vercel AI SDK v5](https://sdk.vercel.ai/) with OpenRouter integration
+- **Database**: [SQLite](https://sqlite.org/) with [Drizzle ORM](https://orm.drizzle.team/)
 - **Validation**: [Zod v4](https://zod.dev/) for runtime type checking
 - **Styling**: [TailwindCSS](https://tailwindcss.com/) for utility-first CSS
 - **Components**: [shadcn/ui](https://ui.shadcn.com/) for beautiful, accessible components
