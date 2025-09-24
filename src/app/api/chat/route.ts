@@ -9,6 +9,22 @@ import {
   searchHolidays,
   Holiday
 } from "@/lib/data/indonesian-holidays";
+import { createConversation, addMessageToConversation, loadConversation } from '@/lib/storage/json-store';
+import { nanoid } from 'nanoid';
+
+// Type definitions for message handling
+interface MessagePart {
+  type: string;
+  text?: string;
+  [key: string]: unknown;
+}
+
+interface ChatMessage {
+  id?: string;
+  role: 'user' | 'assistant' | 'system';
+  content?: string;
+  parts?: MessagePart[];
+}
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -187,10 +203,70 @@ const getHolidayStatsTool = tool({
 export async function POST(req: Request) {
 	try {
 		const body = await req.json();
-		const { messages } = body;
+		const { messages: incomingMessages, conversationId } = body;
+		
+		let currentConversationId = conversationId;
+
+		// If no conversation ID provided, create new conversation
+		if (!currentConversationId && incomingMessages.length > 0) {
+			// Generate title from first user message
+			const firstUserMessage = (incomingMessages as ChatMessage[]).find((m: ChatMessage) => m.role === 'user');
+			const title = firstUserMessage?.content 
+				? firstUserMessage.content.substring(0, 50) + (firstUserMessage.content.length > 50 ? '...' : '')
+				: 'New Conversation';
+
+			// Create new conversation
+			const conversation = createConversation(title);
+			currentConversationId = conversation.id;
+		}
+
+		// Save messages to JSON files (only new ones that aren't already saved)
+		if (currentConversationId) {
+			// Get existing conversation to check for duplicates
+			const existingConversation = loadConversation(currentConversationId);
+			const existingIds = new Set(existingConversation?.messages.map(m => m.id) || []);
+
+			for (const message of incomingMessages as ChatMessage[]) {
+				// Skip if message already exists
+				if (message.id && existingIds.has(message.id)) {
+					continue;
+				}
+
+				const messageId = message.id || nanoid();
+				
+				// Convert message parts to content string
+				let content = '';
+				let toolCalls = undefined;
+
+				if (message.parts) {
+					// AI SDK v5 message format
+					const textParts = message.parts.filter((p: MessagePart) => p.type === 'text');
+					const toolParts = message.parts.filter((p: MessagePart) => p.type.startsWith('tool-'));
+					
+					content = textParts.map((p: MessagePart) => p.text || '').join(' ');
+					
+					if (toolParts.length > 0) {
+						toolCalls = toolParts;
+					}
+				} else if (typeof message.content === 'string') {
+					content = message.content;
+				}
+
+				// Save message to JSON file
+				const storedMessage = {
+					id: messageId,
+					role: message.role as 'user' | 'assistant',
+					content: content,
+					timestamp: new Date().toISOString(),
+					toolCalls: toolCalls
+				};
+
+				addMessageToConversation(currentConversationId, storedMessage);
+			}
+		}
 
 		// AI SDK v5 - Convert UI messages to model messages
-		const modelMessages = convertToModelMessages(messages);
+		const modelMessages = convertToModelMessages(incomingMessages);
 
 		const result = streamText({
 			model: openrouter("gpt-4o-mini"),
@@ -218,10 +294,29 @@ Present the information in a clear, engaging way. When showing holiday details, 
 - Whether it's a public holiday
 
 Feel free to share interesting cultural context and explain the importance of these celebrations in Indonesian society.`,
+			onFinish: async (result) => {
+				// Save the assistant's response after completion
+				if (currentConversationId && result.text) {
+					const assistantMessage = {
+						id: nanoid(),
+						role: 'assistant' as const,
+						content: result.text,
+						timestamp: new Date().toISOString(),
+						toolCalls: result.toolCalls && result.toolCalls.length > 0 ? result.toolCalls : undefined
+					};
+
+					addMessageToConversation(currentConversationId, assistantMessage);
+				}
+			}
 		});
 
-		// AI SDK v5 - Use toUIMessageStreamResponse instead of toTextStreamResponse
-		return result.toUIMessageStreamResponse();
+		// Add conversation ID to the response headers
+		const response = result.toUIMessageStreamResponse();
+		if (currentConversationId) {
+			response.headers.set('X-Conversation-ID', currentConversationId);
+		}
+
+		return response;
 	} catch (error) {
 		console.error("Error in chat API:", error);
 		return new Response("Internal Server Error", { status: 500 });

@@ -18,20 +18,127 @@ import {
 	Info,
 	Loader2,
 	ArrowLeft,
+	Download,
+	FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { ChatSidebar } from "@/components/ChatSidebar";
 
 export default function ChatPage() {
 	const [input, setInput] = useState("");
+	const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 	const scrollRef = useRef<HTMLDivElement>(null);
 
 	// AI SDK v5 - useChat with DefaultChatTransport
-	const { messages, sendMessage, status } = useChat({
+	const { messages, sendMessage, status, setMessages } = useChat({
 		transport: new DefaultChatTransport({
 			api: "/api/chat",
 		}),
 	});
+
+	// Sidebar handlers
+	const handleConversationSelect = async (conversationId: string) => {
+		try {
+			const response = await fetch(`/api/conversations/${conversationId}`);
+			if (response.ok) {
+				const conversation = await response.json();
+				setCurrentConversationId(conversationId);
+				
+				// Convert JSON stored messages to UI message format
+				const uiMessages = conversation.messages.map((msg: any) => {
+					let parts = [{ type: 'text', text: msg.content }];
+					
+					// If message has tool calls, add them to parts
+					if (msg.toolCalls && msg.toolCalls.length > 0) {
+						parts = [
+							{ type: 'text', text: msg.content },
+							...msg.toolCalls
+						];
+					}
+
+					return {
+						id: msg.id,
+						role: msg.role,
+						content: msg.content,
+						parts,
+						createdAt: new Date(msg.timestamp || msg.createdAt),
+					};
+				});
+				
+				setMessages(uiMessages);
+			}
+		} catch (error) {
+			console.error('Failed to load conversation:', error);
+		}
+	};
+
+	const handleNewConversation = () => {
+		setCurrentConversationId(null);
+		setMessages([]);
+	};
+
+	const handleExportChat = async (conversationId?: string) => {
+		try {
+			const url = conversationId 
+				? `/api/export?conversation=${conversationId}` 
+				: '/api/export';
+			
+			const response = await fetch(url);
+			if (response.ok) {
+				const data = await response.json();
+				const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+				const url2 = window.URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.style.display = 'none';
+				a.href = url2;
+				a.download = conversationId 
+					? `chat-${conversationId}.json` 
+					: `all-chats-${new Date().toISOString().split('T')[0]}.json`;
+				document.body.appendChild(a);
+				a.click();
+				window.URL.revokeObjectURL(url2);
+			}
+		} catch (error) {
+			console.error('Export failed:', error);
+			alert('Failed to export chat');
+		}
+	};
+
+	const handleImportChat = () => {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.json';
+		input.onchange = async (e) => {
+			const file = (e.target as HTMLInputElement).files?.[0];
+			if (file) {
+				try {
+					const text = await file.text();
+					const data = JSON.parse(text);
+					
+					const response = await fetch('/api/import', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(data),
+					});
+					
+					if (response.ok) {
+						const result = await response.json();
+						alert(`Successfully imported ${result.imported.conversations} conversations with ${result.imported.messages} messages`);
+						// Refresh sidebar to show imported conversations
+						window.location.reload();
+					} else {
+						const error = await response.json();
+						alert(`Import failed: ${error.error}`);
+					}
+				} catch (error) {
+					console.error('Import failed:', error);
+					alert('Failed to import chat file');
+				}
+			}
+		};
+		input.click();
+	};
 
 	// Simple loading state - check if last message is from user without a response
 	const isLoading =
@@ -423,33 +530,56 @@ export default function ChatPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-background">
-			{/* Header */}
-			<div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-				<div className="flex items-center justify-between p-4">
-					<div className="flex items-center gap-3">
-						<Link href="/">
-							<Button variant="ghost" size="icon" className="h-8 w-8">
-								<ArrowLeft className="h-4 w-4" />
-							</Button>
-						</Link>
+		<div className="min-h-screen bg-background flex">
+			{/* Sidebar */}
+			<ChatSidebar
+				currentConversationId={currentConversationId || undefined}
+				onConversationSelect={handleConversationSelect}
+				onNewConversation={handleNewConversation}
+				onExportChat={handleExportChat}
+				onImportChat={handleImportChat}
+			/>
+
+			{/* Main Chat Area */}
+			<div className="flex-1 flex flex-col">
+				{/* Header */}
+				<div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+					<div className="flex items-center justify-between p-4">
+						<div className="flex items-center gap-3">
+							<Link href="/">
+								<Button variant="ghost" size="icon" className="h-8 w-8">
+									<ArrowLeft className="h-4 w-4" />
+								</Button>
+							</Link>
+							<div className="flex items-center gap-2">
+								<MessageCircle className="w-5 h-5 text-blue-600" />
+								<h1 className="font-semibold">
+									Indonesian Holiday Assistant
+								</h1>
+							</div>
+						</div>
 						<div className="flex items-center gap-2">
-							<MessageCircle className="w-5 h-5 text-blue-600" />
-							<h1 className="font-semibold">
-								Indonesian Holiday Assistant
-							</h1>
+							{currentConversationId && (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handleExportChat(currentConversationId)}
+								>
+									<Download className="w-4 h-4 mr-2" />
+									Export Chat
+								</Button>
+							)}
+							<Badge variant="outline" className="hidden sm:flex">
+								AI SDK v5
+							</Badge>
 						</div>
 					</div>
-					<Badge variant="outline" className="hidden sm:flex">
-						AI SDK v5
-					</Badge>
 				</div>
-			</div>
 
-			{/* Chat Container */}
-			<div className="container mx-auto max-w-4xl h-[calc(100vh-73px)] flex flex-col">
-				{/* Messages Area */}
-				<ScrollArea className="flex-1 p-4" ref={scrollRef}>
+				{/* Chat Container */}
+				<div className="flex-1 max-w-4xl mx-auto w-full flex flex-col">
+					{/* Messages Area */}
+					<ScrollArea className="flex-1 p-4" ref={scrollRef}>
 					{messages.length === 0 ? (
 						<div className="text-center py-8">
 							<Calendar className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
@@ -560,6 +690,7 @@ export default function ChatPage() {
 					</form>
 				</div>
 			</div>
+		</div>
 		</div>
 	);
 }
