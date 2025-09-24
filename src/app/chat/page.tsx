@@ -45,12 +45,30 @@ export default function ChatPage() {
 					)
 		);
 
-	// Auto-scroll to bottom when new messages arrive
-	useEffect(() => {
-		if (scrollRef.current) {
-			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-		}
-	}, [messages]);
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Scroll to bottom when messages change
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    // Also scroll when loading state changes (for immediate feedback)
+    if (isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
