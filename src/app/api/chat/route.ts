@@ -9,7 +9,9 @@ import {
   searchHolidays,
   Holiday
 } from "@/lib/data/indonesian-holidays";
-import { createConversation, addMessageToConversation, loadConversation } from '@/lib/storage/json-store';
+import { db } from '@/lib/db';
+import { sessions, messages, generateSessionId, generateMessageId } from '@/lib/db/schema';
+import { eq, desc, count } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
 // Type definitions for message handling
@@ -207,24 +209,44 @@ export async function POST(req: Request) {
 		
 		let currentConversationId = conversationId;
 
-		// If no conversation ID provided, create new conversation
+		// If no conversation ID provided, create new session
 		if (!currentConversationId && incomingMessages.length > 0) {
 			// Generate title from first user message
 			const firstUserMessage = (incomingMessages as ChatMessage[]).find((m: ChatMessage) => m.role === 'user');
 			const title = firstUserMessage?.content 
 				? firstUserMessage.content.substring(0, 50) + (firstUserMessage.content.length > 50 ? '...' : '')
-				: 'New Conversation';
+				: 'New Chat';
 
-			// Create new conversation
-			const conversation = createConversation(title);
-			currentConversationId = conversation.id;
+			// Create new session in database
+			const newSessionId = generateSessionId();
+			const newSession = {
+				id: newSessionId,
+				title,
+				createdAt: new Date(),
+				lastActiveAt: new Date(),
+			};
+
+			await db.insert(sessions).values(newSession);
+			currentConversationId = newSessionId;
 		}
 
-		// Save messages to JSON files (only new ones that aren't already saved)
+		// Save messages to SQLite database (only new ones that aren't already saved)
 		if (currentConversationId) {
-			// Get existing conversation to check for duplicates
-			const existingConversation = loadConversation(currentConversationId);
-			const existingIds = new Set(existingConversation?.messages.map(m => m.id) || []);
+			// Get existing messages to check for duplicates
+			const existingMessages = await db
+				.select({ id: messages.id })
+				.from(messages)
+				.where(eq(messages.sessionId, currentConversationId));
+			
+			const existingIds = new Set(existingMessages.map(m => m.id));
+
+			// Get current message count for order indexing
+			const messageCountResult = await db
+				.select({ count: count(messages.id) })
+				.from(messages)
+				.where(eq(messages.sessionId, currentConversationId));
+			
+			let orderIndex = messageCountResult[0]?.count || 0;
 
 			for (const message of incomingMessages as ChatMessage[]) {
 				// Skip if message already exists
@@ -232,37 +254,46 @@ export async function POST(req: Request) {
 					continue;
 				}
 
-				const messageId = message.id || nanoid();
+				// const messageId = message.id || generateMessageId();
+        const messageId = generateMessageId();
 				
 				// Convert message parts to content string
 				let content = '';
-				let toolCalls = undefined;
 
 				if (message.parts) {
 					// AI SDK v5 message format
 					const textParts = message.parts.filter((p: MessagePart) => p.type === 'text');
-					const toolParts = message.parts.filter((p: MessagePart) => p.type.startsWith('tool-'));
-					
 					content = textParts.map((p: MessagePart) => p.text || '').join(' ');
-					
-					if (toolParts.length > 0) {
-						toolCalls = toolParts;
-					}
 				} else if (typeof message.content === 'string') {
 					content = message.content;
 				}
 
-				// Save message to JSON file
-				const storedMessage = {
+				// Map role: 'user' -> 'human', 'assistant' -> 'ai'
+				let role: 'human' | 'ai' = 'human';
+				if (message.role === 'user') role = 'human';
+				else if (message.role === 'assistant') role = 'ai';
+
+				// Save message to database
+				const newMessage = {
 					id: messageId,
-					role: message.role as 'user' | 'assistant',
-					content: content,
-					timestamp: new Date().toISOString(),
-					toolCalls: toolCalls
+					sessionId: currentConversationId,
+					role,
+					content,
+					orderIndex,
+					createdAt: new Date(),
+					isComplete: true,
+					streamSequence: 0,
 				};
 
-				addMessageToConversation(currentConversationId, storedMessage);
+				await db.insert(messages).values(newMessage);
+				orderIndex++;
 			}
+
+			// Update session's lastActiveAt
+			await db
+				.update(sessions)
+				.set({ lastActiveAt: new Date() })
+				.where(eq(sessions.id, currentConversationId));
 		}
 
 		// AI SDK v5 - Convert UI messages to model messages
@@ -297,15 +328,31 @@ Feel free to share interesting cultural context and explain the importance of th
 			onFinish: async (result) => {
 				// Save the assistant's response after completion
 				if (currentConversationId && result.text) {
-					const assistantMessage = {
-						id: nanoid(),
-						role: 'assistant' as const,
-						content: result.text,
-						timestamp: new Date().toISOString(),
-						toolCalls: result.toolCalls && result.toolCalls.length > 0 ? result.toolCalls : undefined
-					};
+					// Get current message count for order index
+					const messageCountResult = await db
+						.select({ count: count(messages.id) })
+						.from(messages)
+						.where(eq(messages.sessionId, currentConversationId));
+					
+					const orderIndex = messageCountResult[0]?.count || 0;
 
-					addMessageToConversation(currentConversationId, assistantMessage);
+					const assistantMessage = {
+						id: generateMessageId(),
+						sessionId: currentConversationId,
+						role: 'ai' as const,
+						content: result.text,
+						orderIndex,
+						createdAt: new Date(),
+						isComplete: true,
+						streamSequence: 0,
+					};
+					await db.insert(messages).values(assistantMessage);
+
+					// Update session's lastActiveAt
+					await db
+						.update(sessions)
+						.set({ lastActiveAt: new Date() })
+						.where(eq(sessions.id, currentConversationId));
 				}
 			}
 		});

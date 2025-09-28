@@ -1,4 +1,6 @@
-import { importConversations } from '@/lib/storage/json-store';
+import { db } from '@/lib/db';
+import { sessions, messages, generateSessionId, generateMessageId } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 // POST /api/import - Import conversations from JSON
@@ -15,15 +17,67 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unsupported export version' }, { status: 400 });
     }
 
-    const result = importConversations(importData.conversations);
+    let imported = 0;
+    let totalMessages = 0;
+    const errors: string[] = [];
+
+    for (const conv of importData.conversations) {
+      try {
+        // Generate new session ID to avoid conflicts
+        const newSessionId = generateSessionId();
+
+        // Create session
+        const newSession = {
+          id: newSessionId,
+          title: conv.title || 'Imported Chat',
+          createdAt: conv.createdAt ? new Date(conv.createdAt) : new Date(),
+          lastActiveAt: conv.updatedAt ? new Date(conv.updatedAt) : new Date(),
+        };
+
+        await db.insert(sessions).values(newSession);
+
+        // Import messages
+        if (conv.messages && Array.isArray(conv.messages)) {
+          for (let orderIndex = 0; orderIndex < conv.messages.length; orderIndex++) {
+            const msg = conv.messages[orderIndex];
+            
+            // Map role: 'user' -> 'human', 'assistant' -> 'ai'
+            let role: 'human' | 'ai' = 'human';
+            if (msg.role === 'user') role = 'human';
+            else if (msg.role === 'assistant') role = 'ai';
+            else if (msg.role === 'human' || msg.role === 'ai') role = msg.role;
+
+            const newMessage = {
+              id: generateMessageId(),
+              sessionId: newSessionId,
+              role,
+              content: msg.content || '',
+              orderIndex,
+              createdAt: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+              isComplete: true,
+              streamSequence: 0,
+            };
+
+            await db.insert(messages).values(newMessage);
+            totalMessages++;
+          }
+        }
+
+        imported++;
+      } catch (error) {
+        const errorMsg = `Failed to import conversation: ${conv.title || 'Unknown'}`;
+        errors.push(errorMsg);
+        console.error(errorMsg, error);
+      }
+    }
 
     const response = {
-      success: result.errors.length === 0,
+      success: errors.length === 0,
       imported: {
-        conversations: result.imported,
-        messages: importData.conversations.reduce((sum: number, conv: any) => sum + (conv.messages?.length || 0), 0)
+        conversations: imported,
+        messages: totalMessages
       },
-      errors: result.errors.length > 0 ? result.errors : null
+      errors: errors.length > 0 ? errors : null
     };
 
     return NextResponse.json(response);
