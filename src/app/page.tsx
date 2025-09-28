@@ -158,6 +158,110 @@ export default function Home() {
           </Card>
         </div>
 
+        {/* Extended Challenge Section */}
+        <div className="mt-12 pt-8 border-t">
+          <h2 className="text-3xl font-bold tracking-tight mb-6 text-center">
+            Extended Challenge
+          </h2>
+
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <span className="text-2xl">🧩</span>
+                Persisted Session Chat Storage (SQLite + Drizzle ORM)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-lg">
+                Design a <strong>Drizzle ORM schema</strong> to store chat sessions and their messages in SQLite.
+                There are no "users." Instead, conversations are tied to <strong>sessions</strong>, and sessions <strong>must persist even if the page is refreshed</strong>.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Requirements</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-base mb-2">1. Session Table</h4>
+                      <ul className="space-y-1 list-disc list-inside text-muted-foreground ml-4">
+                        <li>Sessions must use a <strong>stable string identifier</strong> (not an integer auto-increment).</li>
+                        <li>Must track <code className="text-sm bg-muted px-1 py-0.5 rounded">createdAt</code>, <code className="text-sm bg-muted px-1 py-0.5 rounded">lastActiveAt</code>, and a short <code className="text-sm bg-muted px-1 py-0.5 rounded">title</code> for listing sessions in a sidebar.</li>
+                        <li>Sessions must remain <strong>restorable after a refresh</strong> (hint: think about client ↔ server handoff of session IDs).</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-base mb-2">2. Message Table</h4>
+                      <ul className="space-y-1 list-disc list-inside text-muted-foreground ml-4">
+                        <li>Each message belongs to exactly one session.</li>
+                        <li>Must record:
+                          <ul className="mt-2 ml-6 space-y-1 list-disc">
+                            <li>Unique ID (must allow deterministic ordering).</li>
+                            <li>Role: <code className="text-sm bg-muted px-1 py-0.5 rounded">"human"</code> or <code className="text-sm bg-muted px-1 py-0.5 rounded">"ai"</code>.</li>
+                            <li>Content text.</li>
+                            <li>Timestamp of insertion.</li>
+                          </ul>
+                        </li>
+                        <li>Ordering must be <strong>reliable and stable</strong>, even when two messages have the same timestamp.</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-base mb-2">3. Constraints</h4>
+                      <ul className="space-y-1 list-disc list-inside text-muted-foreground ml-4">
+                        <li>Deleting a session must also delete all of its messages.</li>
+                        <li>Fetching a session list should allow showing the <strong>last message preview</strong> efficiently.</li>
+                        <li>Fetching messages in a session must always preserve <strong>chat order</strong>.</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-base mb-2">4. Indexing & Extensions</h4>
+                      <ul className="space-y-1 list-disc list-inside text-muted-foreground ml-4">
+                        <li>Add indexes where you think they are necessary (justify them).</li>
+                        <li>Suggest how you would extend your schema to support <strong>streaming AI responses</strong> (where one message arrives in multiple chunks).</li>
+                        <li><span className="text-orange-600 font-medium">Bonus:</span> suggest how full-text search could be supported for messages in the future.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-2">Deliverables</h3>
+                  <ul className="space-y-2 text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>Write the <strong>Drizzle schema definitions</strong> for <code className="text-sm bg-muted px-1 py-0.5 rounded">sessions</code> and <code className="text-sm bg-muted px-1 py-0.5 rounded">messages</code>.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>Explain your choice of:
+                        <ul className="mt-1 ml-4 space-y-0.5">
+                          <li>• Primary keys</li>
+                          <li>• Foreign keys</li>
+                          <li>• Indexes</li>
+                          <li>• Ordering strategy</li>
+                        </ul>
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>Explain how your design ensures:
+                        <ul className="mt-1 ml-4 space-y-0.5">
+                          <li>• Sessions persist across refresh</li>
+                          <li>• Messages maintain correct order</li>
+                          <li>• Session deletions cascade properly</li>
+                        </ul>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card className="mt-8">
           <CardHeader>
             <CardTitle>Tech Stack</CardTitle>
